@@ -64,26 +64,20 @@ abstract class Field extends CriterionVisitor
     /**
      * Map search field value to solr value using FieldValueMapper.
      *
-     * @param eZ\Publish\SPI\FieldType\Indexable $searchFieldType
+     * @param \eZ\Publish\SPI\Search\FieldType $searchFieldType
      * @param mixed $value
      *
      * @return mixed
      */
-    protected function mapSearchFieldValue(Indexable $searchFieldType, $value)
+    protected function mapSearchFieldValue($searchFieldType, $value)
     {
-        $definition = $searchFieldType->getIndexDefinition();
-        if ($searchFieldType instanceof \eZ\Publish\Core\FieldType\Selection\SearchField) {
-            $matchField = 'selected_option_value';
-        } else {
-            $matchField = $searchFieldType->getDefaultMatchField();
+        if (null === $searchFieldType) {
+            return $value;
         }
 
-        $fieldType = $definition[$matchField];
-        // convert core fieldtype search into a SPI/Search/Field to use in FieldValueMapper
-        $searchField = new SearchField('field', $value, $fieldType);
+        $searchField = new SearchField('field', $value, $searchFieldType);
+        $value = (array)$this->fieldValueMapper->map($searchField);
 
-        $value = $this->fieldValueMapper->map($searchField);
-
-        return current((array)$value);
+        return current($value);
     }
 }
